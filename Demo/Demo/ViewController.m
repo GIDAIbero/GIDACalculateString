@@ -41,7 +41,7 @@
     
     UIToolbar *kbtb = [[[UIToolbar alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 30)] autorelease];
     [kbtb setBarStyle:UIBarStyleBlackTranslucent];
-    [kbtb setItems:[NSArray arrayWithObjects: space, plus, space, minus, space, times, space, fraction, space, nil]];
+    [kbtb setItems:[NSArray arrayWithObjects: space, plus, space, minus, space, times, space, fraction, space, openPar, space, closePar, space, nil]];
     
     [space release];
     [plus release];
