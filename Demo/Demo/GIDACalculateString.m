@@ -11,7 +11,8 @@
 @interface GIDACalculateString ()
 
 +(BOOL)checkFor:(char)character inThis:(NSString *)string fromThis:(int)position whereThisAre:(NSCharacterSet *)notAllowed andThisHelps:(NSCharacterSet *)toStop;
-+(BOOL)checkThis:(NSString *)string atThis:(int)position ifLeftDoesNotHave:(NSCharacterSet *)leftCheck norRightHas:(NSCharacterSet *)rightCheck;
++(BOOL)checkThis:(NSString *)string atThis:(int)position ifLeftDoesNotHave:(NSCharacterSet *)leftCheck norRightHas:(NSCharacterSet *)rightCheck allowFirst:(BOOL)first;
+
 @end
 
 @implementation GIDACalculateString
@@ -27,14 +28,16 @@
     return fullString;
 }
 
-+(BOOL)checkThis:(NSString *)string atThis:(int)position ifLeftDoesNotHave:(NSCharacterSet *)leftCheck norRightHas:(NSCharacterSet *)rightCheck {
++(BOOL)checkThis:(NSString *)string atThis:(int)position ifLeftDoesNotHave:(NSCharacterSet *)leftCheck norRightHas:(NSCharacterSet *)rightCheck allowFirst:(BOOL)first{
     BOOL success = YES;
     
     if (position!= 0) {
         if ([leftCheck characterIsMember:[string characterAtIndex:position-1]])
             success = NO;
     } else {
-        success = NO;
+        if (!first) {
+            success = NO;
+        }
     }
     
     if (position < [string length]) {
@@ -101,22 +104,22 @@
                 case '+':
                     left = [NSCharacterSet characterSetWithCharactersInString:@"(+-*/"];
                     right = [NSCharacterSet characterSetWithCharactersInString:@"+-*/)"];
-                    success = [self checkThis:string atThis:range.location ifLeftDoesNotHave:left norRightHas:right];
+                    success = [self checkThis:string atThis:range.location ifLeftDoesNotHave:left norRightHas:right allowFirst:NO];
                     break;
                 case '-':
-                    left = [NSCharacterSet characterSetWithCharactersInString:@""];
+                    left = [NSCharacterSet characterSetWithCharactersInString:@"-"];
                     right = [NSCharacterSet characterSetWithCharactersInString:@"+-*/)"];
-                    success = [self checkThis:string atThis:range.location ifLeftDoesNotHave:left norRightHas:right];
+                    success = [self checkThis:string atThis:range.location ifLeftDoesNotHave:left norRightHas:right allowFirst:YES];
                     break;
                 case '*':
                     left = [NSCharacterSet characterSetWithCharactersInString:@"(+-*/"];
                     right = [NSCharacterSet characterSetWithCharactersInString:@"+-*/)"];
-                    success = [self checkThis:string atThis:range.location ifLeftDoesNotHave:left norRightHas:right];
+                    success = [self checkThis:string atThis:range.location ifLeftDoesNotHave:left norRightHas:right allowFirst:NO];
                     break;
                 case '/':
                     left = [NSCharacterSet characterSetWithCharactersInString:@"(+-*/"];
                     right = [NSCharacterSet characterSetWithCharactersInString:@"+*/)"];
-                    success = [self checkThis:string atThis:range.location ifLeftDoesNotHave:left norRightHas:right];
+                    success = [self checkThis:string atThis:range.location ifLeftDoesNotHave:left norRightHas:right allowFirst:NO];
                     break;
                 case '(':
                     break;
