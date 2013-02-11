@@ -12,6 +12,7 @@
 
 +(BOOL)checkFor:(char)character inThis:(NSString *)string fromThis:(int)position whereThisAre:(NSCharacterSet *)notAllowed andThisHelps:(NSCharacterSet *)toStop;
 +(BOOL)checkThis:(NSString *)string atThis:(int)position ifLeftDoesNotHave:(NSCharacterSet *)leftCheck norRightHas:(NSCharacterSet *)rightCheck allowFirst:(BOOL)first;
++(int)openParenthesesFor:(NSString *)string toLocation:(int)position;
 
 @end
 
@@ -76,6 +77,23 @@
     return success;
 }
 
++(int)openParenthesesFor:(NSString *)string toLocation:(int)position {
+    int open = 0;
+    int close = 0;
+    
+    for (int i = 0; i < position; i++) {
+        switch ([string characterAtIndex:i]) {
+            case '(':
+                open++;
+                break;
+            case ')':
+                close++;
+                break;
+        }
+    }
+    
+    return open - close;
+}
 +(BOOL)usingThis:(NSString *)string canIAddThis:(NSString *)newString {
     return [self usingThis:string canIAddThis:newString aroundThis:(NSMakeRange(0, [string length]))];
 }
@@ -122,8 +140,19 @@
                     success = [self checkThis:string atThis:range.location ifLeftDoesNotHave:left norRightHas:right allowFirst:NO];
                     break;
                 case '(':
+                    left = [NSCharacterSet characterSetWithCharactersInString:@""];
+                    right = [NSCharacterSet characterSetWithCharactersInString:@"+*/)"];
+                    success = [self checkThis:string atThis:range.location ifLeftDoesNotHave:left norRightHas:right allowFirst:NO];
                     break;
                 case ')':
+                    left = [NSCharacterSet characterSetWithCharactersInString:@"(+-*/"];
+                    right = [NSCharacterSet characterSetWithCharactersInString:@""];
+                    success = [self checkThis:string atThis:range.location ifLeftDoesNotHave:left norRightHas:right allowFirst:NO];
+                    if (success) {
+                        if ([self openParenthesesFor:string toLocation:range.location] <= 0) {
+                            success = NO;
+                        }
+                    }
                     break;
                 default:
                     success = YES;
