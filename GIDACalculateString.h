@@ -15,5 +15,6 @@
 
 +(NSString *)makeStringFrom:(NSString *)string withThis:(NSString *)newString;
 +(NSString *)makeStringFrom:(NSString *)string withThis:(NSString *)newString aroundThis:(NSRange)range;
++(NSNumber *)solveString:(NSString *)string;
 
 @end

@@ -8,11 +8,26 @@
 
 #import "GIDACalculateString.h"
 
+enum {
+    GIDAOperatorNone             = 0,
+    GIDAOperatorOpenParentheses  = 1,
+    GIDAOperatorCloseParentheses = 2,
+    GIDAOperatorFraction         = 3,
+    GIDAOperatorTimes            = 4,
+    GIDAOperatorPlus             = 5,
+    GIDAOperatorMinus            = 6
+};
+typedef NSUInteger GIDAOperator;
+
 @interface GIDACalculateString ()
 
 +(BOOL)checkFor:(char)character inThis:(NSString *)string fromThis:(int)position whereThisAre:(NSCharacterSet *)notAllowed andThisHelps:(NSCharacterSet *)toStop;
 +(BOOL)checkThis:(NSString *)string atThis:(int)position ifLeftDoesNotHave:(NSCharacterSet *)leftCheck norRightHas:(NSCharacterSet *)rightCheck allowFirst:(BOOL)first;
 +(int)openParenthesesFor:(NSString *)string toLocation:(int)position;
++(NSString *)fixString:(NSString *)string;
++(NSNumber *)solveString:(NSString *)string andOperator:(GIDAOperator)operator;
++(NSArray *)splitString:(NSString *)string byOperator:(GIDAOperator)operator;
++(NSArray *)splitFirstParentheses:(NSString *)string;
 
 @end
 
@@ -88,6 +103,16 @@
     return success;
 }
 
+//Check if the string contains parentheses. Split the string with '('.
+//If more than 1 object at array that means there is at least 1 parenthesis.
++(BOOL)hasParentheses:(NSString *)string {
+    NSArray *array = [string componentsSeparatedByString:@"("];
+    if ([array count] > 1) {
+        return YES;
+    }
+    return NO;
+}
+
 //How many parentheses are left open from begining of string to position.
 +(int)openParenthesesFor:(NSString *)string toLocation:(int)position {
     int open = 0;
@@ -115,7 +140,6 @@
 
 //Check if the newString is a valid string or character to add to the string in the range position.
 +(BOOL)usingThis:(NSString *)string canIAddThis:(NSString *)newString aroundThis:(NSRange)range {
-    NSLog(@"Len: %d\tLoc: %d",range.length, range.location);
     BOOL success = YES;
     
     //if newString is empty then it means it wants to delete.
@@ -228,5 +252,263 @@
     }
     return success;
 }
+
+//Fix the string in case the string presents operation simplifications.
+//First replace with keywords so that no error is done when replacing.
+//Replace keywords with correct syntax.
++(NSString *)fixString:(NSString *)string {
+    NSMutableString *mutable = [NSMutableString stringWithString:string];
+    
+    //---THIS COULD BE OPTIMIZED?? ---//
+    [mutable replaceOccurrencesOfString:@")(" withString:@"CO"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    [mutable replaceOccurrencesOfString:@"--" withString:@"MM"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    [mutable replaceOccurrencesOfString:@"-(" withString:@"BM"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    [mutable replaceOccurrencesOfString:@")-" withString:@"CM"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    [mutable replaceOccurrencesOfString:@"(-" withString:@"OM"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    [mutable replaceOccurrencesOfString:@"*-" withString:@"TM"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    [mutable replaceOccurrencesOfString:@"/-" withString:@"FM"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    [mutable replaceOccurrencesOfString:@"+-" withString:@"PM"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    [mutable replaceOccurrencesOfString:@"-"  withString:@"+-"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    [mutable replaceOccurrencesOfString:@"MM" withString:@"+"    options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    [mutable replaceOccurrencesOfString:@"PM" withString:@"+-"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    [mutable replaceOccurrencesOfString:@"FM" withString:@"/-"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    [mutable replaceOccurrencesOfString:@"TM" withString:@"*-"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    [mutable replaceOccurrencesOfString:@"OM" withString:@"(-"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    [mutable replaceOccurrencesOfString:@"CM" withString:@")+-"  options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    [mutable replaceOccurrencesOfString:@"BM" withString:@"-1*(" options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    [mutable replaceOccurrencesOfString:@"CO" withString:@")*("   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    
+    return mutable;
+}
+
+//Split in string in 3 parts.
+//Before the first parentheses
+//The parentheses, between open and close.
+//After the parentheses.
+//If all string is the parentheses then it is put in the middle and empty trings on the sides.
++(NSArray *)splitFirstParentheses:(NSString *)string {
+    int i = 0;
+    NSArray *parentheses = nil;
+    
+    //Look for the first '('
+    for (i = 0; i < [string length]; i++) {
+        if ([string characterAtIndex:i] == '(') {
+            break;
+        }
+    }
+    NSString *pre = [string substringToIndex:i];
+    
+    //Did it find a '('
+    if (i == [string length]) {
+        //Did not find a '(', put string in the middle.
+        parentheses = [NSArray arrayWithObjects:@"",pre, @"", nil];
+    } else {
+        //Did find a '('.
+        //If the there is a number before '(', then append to pre a '*'. (As it is a simplification)
+        if (i != 0) {
+            if ([string characterAtIndex:i-1] >= '0' && [string characterAtIndex:i-1] <= '9') {
+                pre = [pre stringByAppendingString:@"*"];
+            }
+        }
+        //par is string where the parentheses is. (without the parentheses)
+        NSString *par = [string substringFromIndex:i+1];
+        
+        //Look for the close parentheses. Use open in case there are subparentheses inside.
+        int open = 0;
+        for (i = 0; i < [par length]; i++) {
+            if ([par characterAtIndex:i] == '('){
+                open ++;
+            } else {
+                
+                if ([par characterAtIndex:i] == ')') {
+                    if (open == 0) {
+                        break;
+                    } else {
+                        open --;
+                    }
+                }
+            }
+        }
+        
+        NSString *post = @"";
+        //If the last character of par is ) then remove it and have post be "".
+        //If it is not. Cut the string and put the ending part in post.
+        if (i < [par length] - 1){
+            post = [par substringFromIndex:i+1];
+            if ([post characterAtIndex:0] >= '0' && [post characterAtIndex:0] <= '9') {
+                post = [@"*" stringByAppendingString:post];
+            }
+        }
+        par = [par substringToIndex:i];
+        
+        parentheses = [NSArray arrayWithObjects:pre, par, post, nil];
+    }
+    return parentheses;
+}
+
+//Split a string based on its GIDAOperator.
+//Only exception is parentheses and minus.
+//Minus does not require spliting as it is considered a negative adition.
+//For parentheses call splitFirstPArentheses.
++(NSArray *)splitString:(NSString *)string byOperator:(GIDAOperator)operator {
+    NSArray *split = nil;
+    switch (operator) {
+        case GIDAOperatorOpenParentheses:
+            split = [self splitFirstParentheses:string];
+            break;
+        case GIDAOperatorPlus:
+            split = [string componentsSeparatedByString:@"+"];
+            break;
+        case GIDAOperatorTimes:
+            split = [string componentsSeparatedByString:@"*"];
+            break;
+        case GIDAOperatorFraction:
+            split = [string componentsSeparatedByString:@"/"];
+            break;
+        default:
+            break;
+    }
+    return split;
+}
+
+//Solve string based on operator.
++(NSNumber *)solveString:(NSString *)string andOperator:(GIDAOperator)operator {
+    float total = 0;
+    NSNumber *number = nil;
+    NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
+    [formatter setNumberStyle:NSNumberFormatterDecimalStyle];
+    NSNumber *temp = nil;
+    
+    //Split the string based on the GIDAOperator.
+    NSArray *split = [self splitString:string byOperator:operator];
+    
+    //Go through the split string. 
+    for (int i = 0; i < [split count]; i++) {
+        switch (operator) {
+            case GIDAOperatorPlus:
+                //Plus operation.
+                if (i == 0 && [[split objectAtIndex:i] isEqualToString:@""]){
+                } else {
+                    //Try to format to a number.
+                    temp = [formatter numberFromString:[split objectAtIndex:i]];
+                    if (temp) {
+                        //If it was a number add it to the total, and update number.
+                        total += [temp floatValue];
+                        number = [NSNumber numberWithFloat:total];
+                    } else {
+                        //If not a number maybe it has '*' or '/'. So try with '*'
+                        number = [self solveString:[split objectAtIndex:i] andOperator:GIDAOperatorTimes];
+                        if (!number) {
+                            //Not a number then abort
+                            i = [split count];
+                        } else {
+                            //Add the value returned to total, and update number.
+                            total += [number floatValue];
+                            number = [NSNumber numberWithFloat:total];
+                        }
+                    }
+                }
+                break;
+            case GIDAOperatorTimes:
+                //Times operator. (Make total 1.0, to be able to do the mutliplications.
+                if (i == 0) {
+                    total = 1.0;
+                }
+                
+                //Try to format the split string.
+                temp = [formatter numberFromString:[split objectAtIndex:i]];
+                if (temp) {
+                    //It is a number, then multiply it to total, and update number
+                    total *= [temp floatValue];
+                    number = [NSNumber numberWithFloat:total];
+                } else {
+                    //Not a number but it could still be an operation, try with '/'.
+                    number = [self solveString:[split objectAtIndex:i] andOperator:GIDAOperatorFraction];
+                    if (!number) {
+                        //Still not a number, abort!!
+                        i = [split count];
+                    } else {
+                        //It was a fraction so we can mutiply the value returned and update number.
+                        total *= [number floatValue];
+                        number = [NSNumber numberWithFloat:total];
+                    }
+                }
+                break;
+            case GIDAOperatorFraction:
+                //Fraction operation.
+                //Check if the split is a number.
+                temp = [formatter numberFromString:[split objectAtIndex:i]];
+                if (temp) {
+                    //It is a number.
+                    //If it is the begining of the split then use the number as total, and update number.
+                    if (i == 0) {
+                        total = [temp floatValue];
+                        number = [NSNumber numberWithFloat:total];
+                    } else {
+                        //It is not the first value of the array, and the division number is different than zero.
+                        //(Division by 0 are considered not valid)
+                        if ([temp floatValue] != 0.0) {
+                            //Divide the total, and update number.
+                            total /= [temp floatValue];
+                            number = [NSNumber numberWithFloat:total];
+                        } else {
+                            //Terminate iteration and number is nil, to represent a nonvalid result.
+                            i = [split count];
+                            number = nil;
+                        }
+                    }
+                } else {
+                    //Not a number so lets stop and say number is nil.
+                    i = [split count];
+                    number = nil;
+                }
+                break;
+            default:
+                //Anyother operator just stop.
+                i = [split count];
+                number = nil;
+                break;
+        }
+    }
+    
+    [formatter release];
+    //Return the number. It could be an NSNumber or nil.
+    return number;
+}
+
+
+//Solve the NSString.
+//With a string, solve its content if it is an operation if it is not a valid operation returns nil.
++(NSNumber *)solveString:(NSString *)string {
+    NSNumber *result = nil;
+    
+    //Check if it is a valid expression based on parenthesis.
+    //If it was the same open as close parentheses it is considered valid.
+    if ([self openParenthesesFor:string toLocation:[string length]] == 0) {
+        //Fix the string. String might need some help to process eg. )( should be )*(
+        string = [self fixString:string];
+        
+        //Check if the string has parentheses 
+        if ([self hasParentheses:string]) {
+            //Try to obtain a special array with the middle object is the string to process
+            //When done, concatenate all other objects and try to solve recursively.
+            NSMutableArray *parentheses = [NSMutableArray arrayWithArray:[self splitString:string byOperator:GIDAOperatorOpenParentheses]];
+            if (parentheses) {
+                NSNumber *par = [self solveString:[parentheses objectAtIndex:1]];
+                if (par) {
+                    [parentheses setObject:[par stringValue] atIndexedSubscript:1];
+                    string = [parentheses componentsJoinedByString:@""];
+                    result = [self solveString:string];
+                }
+            }
+        } else {
+            //Start solving based on +, then, * then /.
+            result = [self solveString:string andOperator:GIDAOperatorPlus];
+        }
+    }
+    
+    return result;
+}
+
 
 @end

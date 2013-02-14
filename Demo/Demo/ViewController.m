@@ -9,12 +9,15 @@
 #import "ViewController.h"
 
 @interface ViewController ()
+@property (retain, nonatomic) IBOutlet UIButton *solveButton;
 @property (retain, nonatomic) IBOutlet UITextField *textField;
-
+@property (retain, nonatomic) IBOutlet UILabel *solutionLabel;
+-(IBAction)solver:(id)sender;
 @end
 
 @implementation ViewController
 @synthesize textField = _textField;
+@synthesize solutionLabel = _solutionLabel;
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -78,8 +81,19 @@
     return [GIDACalculateString usingThis:[textField text] canIAddThis:string aroundThis:range];
 }
 
+-(IBAction)solver:(id)sender {
+    NSNumber *solved = [GIDACalculateString solveString:[_textField text]];
+    if (solved) {
+        [_solutionLabel setText:[solved stringValue]];
+    } else {
+        [_solutionLabel setText:@"Incorrect operation"];
+    }
+    NSLog(@"Solution: %@", [solved stringValue]);
+}
 - (void)dealloc {
     [_textField release];
+    [_solveButton release];
+    [_solutionLabel release];
     [super dealloc];
 }
 @end
