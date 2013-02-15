@@ -47,7 +47,7 @@ typedef NSUInteger GIDAOperator;
         NSString *postString = [string substringFromIndex:range.location];
         fullString = [[preString stringByAppendingString:newString] stringByAppendingString:postString];
     } else {
-        fullString = nil;
+        fullString = string;
     }
     return fullString;
 }
