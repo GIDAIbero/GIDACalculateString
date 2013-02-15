@@ -10,11 +10,12 @@
 
 @interface GIDACalculateString : NSObject
 
-+(BOOL)usingThis:(NSString *)string canIAddThis:(NSString *)newString;
-+(BOOL)usingThis:(NSString *)string canIAddThis:(NSString *)newString aroundThis:(NSRange)range;
++(BOOL)usingThis:(NSString *)string addThis:(NSString *)newString;
++(BOOL)usingThis:(NSString *)string addThis:(NSString *)newString here:(NSRange)range;
 
-+(NSString *)makeStringFrom:(NSString *)string withThis:(NSString *)newString;
-+(NSString *)makeStringFrom:(NSString *)string withThis:(NSString *)newString aroundThis:(NSRange)range;
++(NSString *)stringFrom:(NSString *)string withThis:(NSString *)newString;
++(NSString *)stringFrom:(NSString *)string withThis:(NSString *)newString here:(NSRange)range;
+
 +(NSNumber *)solveString:(NSString *)string;
 
 @end

@@ -73,12 +73,12 @@
     int length = [[_textField text] length];
     NSRange range = NSMakeRange(length+pos, 0);
     
-    if ([GIDACalculateString usingThis:[_textField text] canIAddThis:[sender title] aroundThis:range])
-        [_textField setText:[GIDACalculateString makeStringFrom:[_textField text] withThis:[sender title] aroundThis:range]];
+    if ([GIDACalculateString usingThis:[_textField text] addThis:[sender title] here:range])
+        [_textField setText:[GIDACalculateString stringFrom:[_textField text] withThis:[sender title] here:range]];
 }
 
 -(BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
-    return [GIDACalculateString usingThis:[textField text] canIAddThis:string aroundThis:range];
+    return [GIDACalculateString usingThis:[textField text] addThis:string here:range];
 }
 
 -(IBAction)solver:(id)sender {

@@ -35,12 +35,12 @@ typedef NSUInteger GIDAOperator;
 
 
 //String appending newString to String.
-+(NSString *)makeStringFrom:(NSString *)string withThis:(NSString *)newString {
++(NSString *)stringFrom:(NSString *)string withThis:(NSString *)newString {
     return [string stringByAppendingString:newString];
 }
 
 //String by cutting at the range location and putting the newString in between.
-+(NSString *)makeStringFrom:(NSString *)string withThis:(NSString *)newString aroundThis:(NSRange)range {
++(NSString *)stringFrom:(NSString *)string withThis:(NSString *)newString here:(NSRange)range {
     NSString *preString = [string substringToIndex:range.location];
     NSString *postString = [string substringFromIndex:range.location];
     NSString *fullString = [[preString stringByAppendingString:newString] stringByAppendingString:postString];
@@ -134,12 +134,12 @@ typedef NSUInteger GIDAOperator;
 
 //call the same function but with the position at the end. Use this if it is always at the end.
 //If not use the same but with aroundThis:range.
-+(BOOL)usingThis:(NSString *)string canIAddThis:(NSString *)newString {
-    return [self usingThis:string canIAddThis:newString aroundThis:(NSMakeRange(0, [string length]))];
++(BOOL)usingThis:(NSString *)string addThis:(NSString *)newString {
+    return [self usingThis:string addThis:newString here:(NSMakeRange(0, [string length]))];
 }
 
 //Check if the newString is a valid string or character to add to the string in the range position.
-+(BOOL)usingThis:(NSString *)string canIAddThis:(NSString *)newString aroundThis:(NSRange)range {
++(BOOL)usingThis:(NSString *)string addThis:(NSString *)newString here:(NSRange)range {
     BOOL success = YES;
     
     //if newString is empty then it means it wants to delete.
@@ -162,7 +162,7 @@ typedef NSUInteger GIDAOperator;
     if ([newString length] > 1) {
         range.length = 0;
         for (int i = 0; i < [newString length]; i++) {
-            if ([self usingThis:string canIAddThis:[NSString stringWithFormat:@"%c",[newString characterAtIndex:i]] aroundThis:range]) {
+            if ([self usingThis:string addThis:[NSString stringWithFormat:@"%c",[newString characterAtIndex:i]] here:range]) {
                 string = [string stringByAppendingFormat:@"%c",[newString characterAtIndex:i]];
                 range.location ++;
             } else {
