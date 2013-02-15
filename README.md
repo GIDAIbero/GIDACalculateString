@@ -90,7 +90,7 @@ String to check if adding it would create a correct expression.
 _range_  
 Range where string would be added.
 
-__Return Value__ 
+__Return Value__  
 A string with containing the previous string with the new string in the specified location.
 
 ### solveString:  
@@ -102,5 +102,5 @@ __Parameters__
 _string_  
 String containing the mathematical expression.
 
-__Return Value__ 
+__Return Value__  
 A number with the result of the mathematical expression, nil if it is not a well formed expression.
