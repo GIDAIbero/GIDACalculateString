@@ -41,9 +41,14 @@ typedef NSUInteger GIDAOperator;
 
 //String by cutting at the range location and putting the newString in between.
 +(NSString *)stringFrom:(NSString *)string withThis:(NSString *)newString here:(NSRange)range {
-    NSString *preString = [string substringToIndex:range.location];
-    NSString *postString = [string substringFromIndex:range.location];
-    NSString *fullString = [[preString stringByAppendingString:newString] stringByAppendingString:postString];
+    NSString *fullString = nil;
+    if ([self usingThis:string addThis:newString here:range]) {
+        NSString *preString = [string substringToIndex:range.location];
+        NSString *postString = [string substringFromIndex:range.location];
+        fullString = [[preString stringByAppendingString:newString] stringByAppendingString:postString];
+    } else {
+        fullString = string;
+    }
     return fullString;
 }
 
@@ -382,7 +387,7 @@ typedef NSUInteger GIDAOperator;
     //Split the string based on the GIDAOperator.
     NSArray *split = [self splitString:string byOperator:operator];
     
-    //Go through the split string. 
+    //Go through the split string.
     for (int i = 0; i < [split count]; i++) {
         switch (operator) {
             case GIDAOperatorPlus:
@@ -488,7 +493,7 @@ typedef NSUInteger GIDAOperator;
         //Fix the string. String might need some help to process eg. )( should be )*(
         string = [self fixString:string];
         
-        //Check if the string has parentheses 
+        //Check if the string has parentheses
         if ([self hasParentheses:string]) {
             //Try to obtain a special array with the middle object is the string to process
             //When done, concatenate all other objects and try to solve recursively.
