@@ -46,13 +46,11 @@
     [kbtb setBarStyle:UIBarStyleBlackTranslucent];
     [kbtb setItems:[NSArray arrayWithObjects: space, plus, space, minus, space, times, space, fraction, space, openPar, space, closePar, space, nil]];
     
-    [space release];
-    [plus release];
-    [openPar release];
-    [closePar release];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >=7.0) {
+        [kbtb setTintColor:[UIColor whiteColor]];
+    }
     
-    [betweenArrowsSpace release];
-    [betweenSignAndArrowSpace release];
+    
     
     _textField.inputAccessoryView = kbtb;
     _textField.keyboardAppearance = UIKeyboardAppearanceAlert;
