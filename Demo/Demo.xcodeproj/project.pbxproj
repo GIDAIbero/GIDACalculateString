@@ -18,7 +18,9 @@
 		BE25BBBA16C869840087A092 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = BE25BBB916C869840087A092 /* Default-568h@2x.png */; };
 		BE25BBBD16C869840087A092 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = BE25BBBC16C869840087A092 /* ViewController.m */; };
 		BE25BBC016C869840087A092 /* ViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = BE25BBBE16C869840087A092 /* ViewController.xib */; };
+		BE2EF96517F31CAF008FDF8C /* GIDACalculateTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = BE2EF96417F31CAF008FDF8C /* GIDACalculateTextField.m */; };
 		BE98117816C86A9A0034F489 /* GIDACalculateString.m in Sources */ = {isa = PBXBuildFile; fileRef = BE98117716C86A9A0034F489 /* GIDACalculateString.m */; };
+		BEA256B417F47ABD008AB340 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BEA256B217F47A78008AB340 /* Accelerate.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,8 +40,11 @@
 		BE25BBBB16C869840087A092 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		BE25BBBC16C869840087A092 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		BE25BBBF16C869840087A092 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController.xib; sourceTree = "<group>"; };
+		BE2EF96317F31CAF008FDF8C /* GIDACalculateTextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GIDACalculateTextField.h; sourceTree = "<group>"; };
+		BE2EF96417F31CAF008FDF8C /* GIDACalculateTextField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GIDACalculateTextField.m; sourceTree = "<group>"; };
 		BE98117616C86A9A0034F489 /* GIDACalculateString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GIDACalculateString.h; sourceTree = "<group>"; };
 		BE98117716C86A9A0034F489 /* GIDACalculateString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GIDACalculateString.m; sourceTree = "<group>"; };
+		BEA256B217F47A78008AB340 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,6 +52,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BEA256B417F47ABD008AB340 /* Accelerate.framework in Frameworks */,
 				BE25BBA416C869840087A092 /* UIKit.framework in Frameworks */,
 				BE25BBA616C869840087A092 /* Foundation.framework in Frameworks */,
 				BE25BBA816C869840087A092 /* CoreGraphics.framework in Frameworks */,
@@ -76,6 +82,7 @@
 		BE25BBA216C869840087A092 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				BEA256B217F47A78008AB340 /* Accelerate.framework */,
 				BE25BBA316C869840087A092 /* UIKit.framework */,
 				BE25BBA516C869840087A092 /* Foundation.framework */,
 				BE25BBA716C869840087A092 /* CoreGraphics.framework */,
@@ -92,6 +99,8 @@
 				BE25BBB316C869840087A092 /* AppDelegate.m */,
 				BE25BBBB16C869840087A092 /* ViewController.h */,
 				BE25BBBC16C869840087A092 /* ViewController.m */,
+				BE2EF96317F31CAF008FDF8C /* GIDACalculateTextField.h */,
+				BE2EF96417F31CAF008FDF8C /* GIDACalculateTextField.m */,
 				BE25BBBE16C869840087A092 /* ViewController.xib */,
 				BE25BBAA16C869840087A092 /* Supporting Files */,
 			);
@@ -178,6 +187,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BE2EF96517F31CAF008FDF8C /* GIDACalculateTextField.m in Sources */,
 				BE25BBB016C869840087A092 /* main.m in Sources */,
 				BE25BBB416C869840087A092 /* AppDelegate.m in Sources */,
 				BE25BBBD16C869840087A092 /* ViewController.m in Sources */,
@@ -264,6 +274,7 @@
 		BE25BBC416C869840087A092 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Demo/Demo-Prefix.pch";
 				INFOPLIST_FILE = "Demo/Demo-Info.plist";
@@ -275,6 +286,7 @@
 		BE25BBC516C869840087A092 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Demo/Demo-Prefix.pch";
 				INFOPLIST_FILE = "Demo/Demo-Info.plist";
