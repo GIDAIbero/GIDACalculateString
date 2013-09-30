@@ -9,7 +9,6 @@
             <connections>
                 <outlet property="solutionLabel" destination="31" id="43"/>
                 <outlet property="solveButton" destination="26" id="29"/>
-                <outlet property="textField" destination="8" id="25"/>
                 <outlet property="view" destination="6" id="7"/>
             </connections>
         </placeholder>
@@ -18,15 +17,6 @@
             <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="8">
-                    <rect key="frame" x="20" y="20" width="280" height="30"/>
-                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                    <textInputTraits key="textInputTraits" keyboardType="decimalPad" keyboardAppearance="alert"/>
-                    <connections>
-                        <outlet property="delegate" destination="-1" id="14"/>
-                    </connections>
-                </textField>
                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="26">
                     <rect key="frame" x="235" y="58" width="65" height="30"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -50,15 +40,12 @@
             </subviews>
             <color key="backgroundColor" white="0.75" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
             <constraints>
-                <constraint firstItem="8" firstAttribute="leading" secondItem="6" secondAttribute="leading" constant="20" symbolic="YES" id="9"/>
-                <constraint firstItem="8" firstAttribute="top" secondItem="6" secondAttribute="top" constant="20" symbolic="YES" id="10"/>
-                <constraint firstAttribute="trailing" secondItem="8" secondAttribute="trailing" constant="20" symbolic="YES" id="12"/>
                 <constraint firstAttribute="trailing" secondItem="26" secondAttribute="trailing" constant="20" symbolic="YES" id="27"/>
-                <constraint firstItem="26" firstAttribute="top" secondItem="8" secondAttribute="bottom" constant="8" symbolic="YES" id="28"/>
                 <constraint firstItem="31" firstAttribute="leading" secondItem="6" secondAttribute="leading" constant="20" symbolic="YES" id="32"/>
-                <constraint firstItem="31" firstAttribute="top" secondItem="8" secondAttribute="bottom" constant="8" symbolic="YES" id="33"/>
                 <constraint firstItem="26" firstAttribute="leading" secondItem="31" secondAttribute="trailing" constant="8" symbolic="YES" id="35"/>
                 <constraint firstItem="26" firstAttribute="bottom" secondItem="31" secondAttribute="bottom" id="36"/>
+                <constraint firstItem="31" firstAttribute="top" secondItem="26" secondAttribute="top" id="Buh-1E-Vkw"/>
+                <constraint firstItem="31" firstAttribute="top" secondItem="6" secondAttribute="top" constant="58" id="wO1-r5-L1j"/>
             </constraints>
             <simulatedStatusBarMetrics key="simulatedStatusBarMetrics"/>
             <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina4"/>

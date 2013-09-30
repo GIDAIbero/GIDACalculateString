@@ -19,3 +19,9 @@
 +(NSNumber *)solveString:(NSString *)string;
 
 @end
+
+@interface ComplexObject : NSObject
+@property (nonatomic) double real;
+@property (nonatomic) double imaginary;
+-(NSString *)stringValue;
+@end

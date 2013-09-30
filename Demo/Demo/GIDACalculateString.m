@@ -7,32 +7,128 @@
 //
 
 #import "GIDACalculateString.h"
+#import <Accelerate/Accelerate.h>
 
 enum {
-    GIDAOperatorNone             = 0,
-    GIDAOperatorOpenParentheses  = 1,
-    GIDAOperatorCloseParentheses = 2,
-    GIDAOperatorFraction         = 3,
-    GIDAOperatorTimes            = 4,
-    GIDAOperatorPlus             = 5,
-    GIDAOperatorMinus            = 6
+    GIDAOperatorNone,
+    GIDAOperatorOpenParentheses,
+    GIDAOperatorCloseParentheses,
+    GIDAOperatorFraction,
+    GIDAOperatorTimes,
+    GIDAOperatorPlus,
+    GIDAOperatorMinus,
+    GIDAOperatorRoot
 };
 typedef NSUInteger GIDAOperator;
 
-@interface GIDACalculateString ()
+@interface ComplexObject ()
+@property (nonatomic) double radius;
+@property (nonatomic) double angle;
+@end
 
+@implementation ComplexObject
+
+-(id)initWithReal:(double)r andImaginary:(double)i {
+    self = [super init];
+    if (self) {
+        _real      = r;
+        _imaginary = i;
+        _radius    = sqrt(pow(r,2)+pow(i,2));
+        if (_real != 0) {
+            if (_imaginary == 0) {
+                _angle = 0;
+            } else {
+                _angle = asin(i/_radius);
+            }
+        } else {
+            if (_imaginary != 0) {
+                _angle = 90.0;
+            } else {
+                _angle = 0.0;
+            }
+        }
+        
+    }
+    return self;
+}
+-(void)setReal:(double)real {
+    _real      = real;
+    _radius    = sqrt(pow(_real,2)+pow(_imaginary,2));
+    if (_real != 0) {
+        if (_imaginary == 0) {
+            _angle = 0;
+        } else {
+            _angle = asin(_imaginary/_radius);
+        }
+    } else {
+        if (_imaginary != 0) {
+            _angle = 90.0;
+        } else {
+            _angle = 0.0;
+        }
+    }
+}
+-(void)setImaginary:(double)imaginary {
+    _imaginary      = imaginary;
+    _radius    = sqrt(pow(_real,2)+pow(_imaginary,2));
+    if (_real != 0) {
+        if (_imaginary == 0) {
+            _angle = 0;
+        } else {
+            _angle = asin(_imaginary/_radius);
+        }
+    } else {
+        if (_imaginary != 0) {
+            _angle = 90.0;
+        } else {
+            _angle = 0.0;
+        }
+    }
+}
+-(void)squareRoot {
+    if (_real < 0) {
+        _angle = 90.0;
+    } else {
+        _angle = _angle / 2.0;
+    }
+    
+    _radius = sqrt(_radius);
+    double rad = _angle * M_PI / 180.0;
+    _real      = _radius * cos(rad);
+    if (_angle == 90.0) {
+        _real = 0;
+    }
+    
+    _imaginary = _radius * sin(rad);
+    if (_imaginary == 0 || _imaginary == -0) {
+        _imaginary = 0;
+    }
+    NSLog(@"%f",_angle);
+}
+-(NSString *)stringValue{
+    if ((_real > 0 || _real < -0) && _imaginary != 0 ) {
+        return [NSString stringWithFormat:@"%f+%fi",self.real, self.imaginary];
+    }
+    if (_real == 0 && _imaginary != 0) {
+        return [NSString stringWithFormat:@"%fi", self.imaginary];
+    }
+    if (_real != 0 && _imaginary == 0) {
+        return [NSString stringWithFormat:@"%f", self.real];
+    }
+    return @"0";
+}
+
+@end
+
+@interface GIDACalculateString ()
 +(BOOL)checkFor:(char)character inThis:(NSString *)string fromThis:(int)position whereThisAre:(NSCharacterSet *)notAllowed andThisHelps:(NSCharacterSet *)toStop;
 +(BOOL)checkThis:(NSString *)string atThis:(int)position ifLeftDoesNotHave:(NSCharacterSet *)leftCheck norRightHas:(NSCharacterSet *)rightCheck allowFirst:(BOOL)first;
 +(int)openParenthesesFor:(NSString *)string toLocation:(int)position;
 +(NSString *)fixString:(NSString *)string;
-+(NSNumber *)solveString:(NSString *)string andOperator:(GIDAOperator)operator;
-+(NSArray *)splitString:(NSString *)string byOperator:(GIDAOperator)operator;
-+(NSArray *)splitFirstParentheses:(NSString *)string;
 
 @end
 
 @implementation GIDACalculateString
-
 
 //String appending newString to String.
 +(NSString *)stringFrom:(NSString *)string withThis:(NSString *)newString {
@@ -181,7 +277,7 @@ typedef NSUInteger GIDAOperator;
         //If its the first character to input, check if it is an allowed character.
         //Allowed characters as first character of input are '.', '-', '(' and numbers from 0 to 9.
         if ([string length] == 0 || range.location == 0) {
-            if ([newString characterAtIndex:0] == '.' || [newString characterAtIndex:0] == '-' || [newString characterAtIndex:0] == '(' || ([newString characterAtIndex:0] >= '0' && [newString characterAtIndex:0] <= '9')) {
+            if ([newString characterAtIndex:0] == '.' || [newString characterAtIndex:0] == '-'  || [newString characterAtIndex:0] == '(' || ([newString characterAtIndex:0] >= '0' && [newString characterAtIndex:0] <= '9')) {
                 success = YES;
             } else {
                 success = NO;
@@ -208,7 +304,7 @@ typedef NSUInteger GIDAOperator;
                     success = [self checkThis:string atThis:range.location ifLeftDoesNotHave:left norRightHas:right allowFirst:NO];
                     break;
                 case '-':
-                    //The user is not allowed to put a '+' sign when on the left there is a '-'.
+                    //The user is not allowed to put a '-' sign when on the left there is a '-'.
                     //To the right of a '-' sign there can not be a ')', '+', '-', '*', or '/'.
                     left = [NSCharacterSet characterSetWithCharactersInString:@"-"];
                     right = [NSCharacterSet characterSetWithCharactersInString:@"+-*/)"];
@@ -272,8 +368,12 @@ typedef NSUInteger GIDAOperator;
     [mutable replaceOccurrencesOfString:@"(-" withString:@"OM"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
     [mutable replaceOccurrencesOfString:@"*-" withString:@"TM"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
     [mutable replaceOccurrencesOfString:@"/-" withString:@"FM"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    [mutable replaceOccurrencesOfString:@"√-" withString:@"NR"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
     [mutable replaceOccurrencesOfString:@"+-" withString:@"PM"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    
     [mutable replaceOccurrencesOfString:@"-"  withString:@"+-"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    
+    [mutable replaceOccurrencesOfString:@"NR"  withString:@"√-"  options:NSLiteralSearch range:NSMakeRange(0, [string length])];
     [mutable replaceOccurrencesOfString:@"MM" withString:@"+"    options:NSLiteralSearch range:NSMakeRange(0, [string length])];
     [mutable replaceOccurrencesOfString:@"PM" withString:@"+-"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
     [mutable replaceOccurrencesOfString:@"FM" withString:@"/-"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
@@ -281,234 +381,409 @@ typedef NSUInteger GIDAOperator;
     [mutable replaceOccurrencesOfString:@"OM" withString:@"(-"   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
     [mutable replaceOccurrencesOfString:@"CM" withString:@")+-"  options:NSLiteralSearch range:NSMakeRange(0, [string length])];
     [mutable replaceOccurrencesOfString:@"BM" withString:@"-1*(" options:NSLiteralSearch range:NSMakeRange(0, [string length])];
-    [mutable replaceOccurrencesOfString:@"CO" withString:@")*("   options:NSLiteralSearch range:NSMakeRange(0, [string length])];
+    [mutable replaceOccurrencesOfString:@"CO" withString:@")*("  options:NSLiteralSearch range:NSMakeRange(0, [string length])];
     
     return mutable;
 }
 
-//Split in string in 3 parts.
-//Before the first parentheses
-//The parentheses, between open and close.
-//After the parentheses.
-//If all string is the parentheses then it is put in the middle and empty trings on the sides.
-+(NSArray *)splitFirstParentheses:(NSString *)string {
-    int i = 0;
-    NSArray *parentheses = nil;
++(ComplexObject *)parenthesisAndRegEx:(NSString *)string {
+    NSError *error = nil;
+    NSRegularExpression *regex = nil;
     
-    //Look for the first '('
-    for (i = 0; i < [string length]; i++) {
-        if ([string characterAtIndex:i] == '(') {
-            break;
+     regex = [NSRegularExpression regularExpressionWithPattern:@"(√)(-*(\\d|[.i])+)"
+                                                       options:NSRegularExpressionCaseInsensitive
+                                                         error:&error];
+     string = [regex stringByReplacingMatchesInString:string
+                                              options:0
+                                                range:NSMakeRange(0, [string length])
+                                         withTemplate:@"√($2)"];
+    
+    regex = [NSRegularExpression regularExpressionWithPattern:@"(\\d)(√)"
+                                                      options:NSRegularExpressionCaseInsensitive
+                                                        error:&error];
+    string = [regex stringByReplacingMatchesInString:string
+                                             options:0
+                                               range:NSMakeRange(0, [string length])
+                                        withTemplate:@"$1*$2"];
+    
+    
+    
+    regex = [NSRegularExpression regularExpressionWithPattern:@"\\(((\\d|[+-/*√i.])*)\\)"
+                                                      options:NSRegularExpressionCaseInsensitive
+                                                        error:&error];
+    
+    NSRange textRange = NSMakeRange(0, string.length);
+    NSArray *matches = [regex matchesInString:string options:NSMatchingReportCompletion range:textRange];
+    
+    NSMutableArray *splitString = nil;
+    if (matches) {
+        int i = 0;
+        int position = 0;
+        NSRange range ;
+        for (NSTextCheckingResult *result in matches) {
+            if (!splitString) {
+                splitString = [NSMutableArray array];
+            }
+            
+            range = result.range;
+            
+            [splitString addObject:[string substringWithRange:NSMakeRange(position, (range.location)-position)]];
+            position = range.location + range.length;
+            range.length   -= 2;
+            range.location += 1;
+            NSString *sub  = [string substringWithRange:range];
+            ComplexObject *numb = [self plusAndRegEx:sub];
+            if (!numb) {
+                return nil;
+            }
+            [splitString addObject:numb];
+            i++;
         }
-    }
-    NSString *pre = [string substringToIndex:i];
-    
-    //Did it find a '('
-    if (i == [string length]) {
-        //Did not find a '(', put string in the middle.
-        parentheses = [NSArray arrayWithObjects:@"",pre, @"", nil];
+        if (!i) {
+            return  [self plusAndRegEx:string];
+        } else {
+            position = range.location + range.length + 1;
+            [splitString addObject:[string substringWithRange:NSMakeRange(position, [string length]-position)]];
+            for (int i = 0; i < [splitString count]; i++) {
+                if ([[splitString objectAtIndex:i] isKindOfClass:[ComplexObject class]]) {
+                    
+                    ComplexObject *complex = (ComplexObject *)[splitString objectAtIndex:i];
+                    NSString *complexString = [complex stringValue];
+                    
+                    [splitString setObject:complexString atIndexedSubscript:i];
+                }
+            }
+            return [self parenthesisAndRegEx:[splitString componentsJoinedByString:@""]];
+            
+        }
     } else {
-        //Did find a '('.
-        //If the there is a number before '(', then append to pre a '*'. (As it is a simplification)
-        if (i != 0) {
-            if ([string characterAtIndex:i-1] >= '0' && [string characterAtIndex:i-1] <= '9') {
-                pre = [pre stringByAppendingString:@"*"];
+        NSLog(@"Error in REGEX: %@",error.description);
+        return  nil;
+    }
+}
+
++(ComplexObject *)plusAndRegEx:(NSString *)string {
+    NSError *error = nil;
+    NSRegularExpression *regex = nil;
+    
+    regex = [NSRegularExpression regularExpressionWithPattern:@"(\\d|[-i*√/.])*"
+                                                      options:NSRegularExpressionCaseInsensitive
+                                                        error:&error];
+    
+    NSRange textRange = NSMakeRange(0, string.length);
+    NSArray *matches = [regex matchesInString:string options:NSMatchingReportCompletion range:textRange];
+    
+    NSMutableArray *splitString = nil;
+    if (matches) {
+        int i = 0;
+        int position = 0;
+        NSRange range ;
+        for (NSTextCheckingResult *result in matches) {
+            if (!splitString) {
+                splitString = [NSMutableArray array];
             }
-        }
-        //par is string where the parentheses is. (without the parentheses)
-        NSString *par = [string substringFromIndex:i+1];
-        
-        //Look for the close parentheses. Use open in case there are subparentheses inside.
-        int open = 0;
-        for (i = 0; i < [par length]; i++) {
-            if ([par characterAtIndex:i] == '('){
-                open ++;
-            } else {
+            
+            range = result.range;
+            
+            if (range.length > 0) {
+                NSString *sub = [string substringWithRange:range];
                 
-                if ([par characterAtIndex:i] == ')') {
-                    if (open == 0) {
-                        break;
+                ComplexObject *times = [self timesAndRegEx:sub];
+                [splitString addObject:times];
+            }
+            
+            i++;
+        }
+        if (!i) {
+            ComplexObject *complex = [[ComplexObject alloc] initWithReal:[string doubleValue] andImaginary:0];
+            return  complex;
+        } else {
+            position = range.location + range.length + 1;
+            if (position < [string length]) {
+                [splitString addObject:[string substringWithRange:NSMakeRange(position, [string length]-position)]];
+            }
+            ComplexObject *total  = [[ComplexObject alloc] initWithReal:0 andImaginary:0];
+            for (ComplexObject *part in splitString) {
+                total.real += part.real;
+                total.imaginary += part.imaginary;
+            }
+            return total;
+        }
+    } else {
+        NSLog(@"Error in REGEX: %@",error.description);
+        return  nil;
+    }
+    
+}
+
++(ComplexObject *)timesAndRegEx:(NSString *)string {
+    NSError *error = nil;
+    NSRegularExpression *regex = nil;
+    
+    regex = [NSRegularExpression regularExpressionWithPattern:@"(\\d|[-/i.√])*"
+                                                      options:NSRegularExpressionCaseInsensitive
+                                                        error:&error];
+    
+    NSRange textRange = NSMakeRange(0, string.length);
+    NSArray *matches = [regex matchesInString:string options:NSMatchingReportCompletion range:textRange];
+    
+    NSMutableArray *splitString = nil;
+    if (matches) {
+        int i = 0;
+        int position = 0;
+        NSRange range ;
+        for (NSTextCheckingResult *result in matches) {
+            if (!splitString) {
+                splitString = [NSMutableArray array];
+            }
+            
+            range = result.range;
+            
+            if (range.length > 0) {
+                NSString *sub   = [string substringWithRange:range];
+                ComplexObject *times = [self divisionAndRegEx:sub];
+                [splitString addObject:times];
+            }
+            
+            i++;
+        }
+        if (!i) {
+            ComplexObject *complex = [[ComplexObject alloc] initWithReal:[string doubleValue] andImaginary:0];
+            return  complex;
+        } else {
+            position = range.location + range.length + 1;
+            if (position < [string length]) {
+                [splitString addObject:[string substringWithRange:NSMakeRange(position, [string length]-position)]];
+            }
+            int firstreal = 0;
+            int firstimag = 0;
+            ComplexObject *total  = [[ComplexObject alloc] initWithReal:0 andImaginary:0];
+            int imagetimes = 0;
+            
+            for (ComplexObject *part in splitString) {
+                if (part.imaginary != 0) {
+                    if (!firstimag){
+                        firstimag++;
+                        total = part;
                     } else {
-                        open --;
+                        total.imaginary *= part.imaginary;
                     }
-                }
-            }
-        }
-        
-        NSString *post = @"";
-        //If the last character of par is ) then remove it and have post be "".
-        //If it is not. Cut the string and put the ending part in post.
-        if (i < [par length] - 1){
-            post = [par substringFromIndex:i+1];
-            if ([post characterAtIndex:0] >= '0' && [post characterAtIndex:0] <= '9') {
-                post = [@"*" stringByAppendingString:post];
-            }
-        }
-        par = [par substringToIndex:i];
-        
-        parentheses = [NSArray arrayWithObjects:pre, par, post, nil];
-    }
-    return parentheses;
-}
-
-//Split a string based on its GIDAOperator.
-//Only exception is parentheses and minus.
-//Minus does not require spliting as it is considered a negative adition.
-//For parentheses call splitFirstPArentheses.
-+(NSArray *)splitString:(NSString *)string byOperator:(GIDAOperator)operator {
-    NSArray *split = nil;
-    switch (operator) {
-        case GIDAOperatorOpenParentheses:
-            split = [self splitFirstParentheses:string];
-            break;
-        case GIDAOperatorPlus:
-            split = [string componentsSeparatedByString:@"+"];
-            break;
-        case GIDAOperatorTimes:
-            split = [string componentsSeparatedByString:@"*"];
-            break;
-        case GIDAOperatorFraction:
-            split = [string componentsSeparatedByString:@"/"];
-            break;
-        default:
-            break;
-    }
-    return split;
-}
-
-//Solve string based on operator.
-+(NSNumber *)solveString:(NSString *)string andOperator:(GIDAOperator)operator {
-    float total = 0;
-    NSNumber *number = nil;
-    NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
-    [formatter setNumberStyle:NSNumberFormatterDecimalStyle];
-    NSNumber *temp = nil;
-    
-    //Split the string based on the GIDAOperator.
-    NSArray *split = [self splitString:string byOperator:operator];
-    
-    //Go through the split string.
-    for (int i = 0; i < [split count]; i++) {
-        switch (operator) {
-            case GIDAOperatorPlus:
-                //Plus operation.
-                if (i == 0 && [[split objectAtIndex:i] isEqualToString:@""]){
-                } else {
-                    //Try to format to a number.
-                    temp = [formatter numberFromString:[split objectAtIndex:i]];
-                    if (temp) {
-                        //If it was a number add it to the total, and update number.
-                        total += [temp floatValue];
-                        number = [NSNumber numberWithFloat:total];
+                    imagetimes++;
+                }  else {
+                    if (firstimag) {
+                        total.imaginary *= part.real;
                     } else {
-                        //If not a number maybe it has '*' or '/'. So try with '*'
-                        number = [self solveString:[split objectAtIndex:i] andOperator:GIDAOperatorTimes];
-                        if (!number) {
-                            //Not a number then abort
-                            i = [split count];
+                        if (!firstreal) {
+                            total = part;
+                            firstreal++;
                         } else {
-                            //Add the value returned to total, and update number.
-                            total += [number floatValue];
-                            number = [NSNumber numberWithFloat:total];
+                            total.real *= part.real;
                         }
                     }
                 }
-                break;
-            case GIDAOperatorTimes:
-                //Times operator. (Make total 1.0, to be able to do the mutliplications.
+            }
+            
+            if (firstimag && imagetimes%2 == 0) {
+                if (!firstreal) {
+                total.real = (-1 * total.imaginary);
+                } else {
+                    total.real *= (-1 * total.imaginary);
+                }
+                total.imaginary = 0;
+            }
+            return total;
+        }
+    } else {
+        NSLog(@"Error in REGEX: %@",error.description);
+        return  nil;
+    }
+}
+
++(ComplexObject *)divisionAndRegEx:(NSString *)string {
+    NSError *error = nil;
+    NSRegularExpression *regex = nil;
+    
+    regex = [NSRegularExpression regularExpressionWithPattern:@"(\\d|[-.i√])*"
+                                                      options:NSRegularExpressionCaseInsensitive
+                                                        error:&error];
+    
+    NSRange textRange = NSMakeRange(0, string.length);
+    NSArray *matches = [regex matchesInString:string options:NSMatchingReportCompletion range:textRange];
+    
+    NSMutableArray *splitString = nil;
+    if (matches) {
+        int i = 0;
+        int position = 0;
+        NSRange range ;
+        for (NSTextCheckingResult *result in matches) {
+            if (!splitString) {
+                splitString = [NSMutableArray array];
+            }
+            
+            range = result.range;
+            
+            if (range.length > 0) {
+                NSString *sub  = [string substringWithRange:range];
+                ComplexObject *root = [self rootAndRegEx:sub];
+                [splitString addObject:root];
+            }
+            
+            i++;
+        }
+        if (!i) {
+            ComplexObject *complex = [[ComplexObject alloc] initWithReal:[string doubleValue] andImaginary:0];
+            return  complex;
+        } else {
+            position = range.location + range.length + 1;
+            if (position < [string length]) {
+                [splitString addObject:[string substringWithRange:NSMakeRange(position, [string length]-position)]];
+            }
+            
+            ComplexObject *total;
+            int i = 0;
+            for (ComplexObject *part in splitString) {
                 if (i == 0) {
-                    total = 1.0;
-                }
-                
-                //Try to format the split string.
-                temp = [formatter numberFromString:[split objectAtIndex:i]];
-                if (temp) {
-                    //It is a number, then multiply it to total, and update number
-                    total *= [temp floatValue];
-                    number = [NSNumber numberWithFloat:total];
+                    total = part;
+                    i++;
                 } else {
-                    //Not a number but it could still be an operation, try with '/'.
-                    number = [self solveString:[split objectAtIndex:i] andOperator:GIDAOperatorFraction];
-                    if (!number) {
-                        //Still not a number, abort!!
-                        i = [split count];
-                    } else {
-                        //It was a fraction so we can mutiply the value returned and update number.
-                        total *= [number floatValue];
-                        number = [NSNumber numberWithFloat:total];
-                    }
-                }
-                break;
-            case GIDAOperatorFraction:
-                //Fraction operation.
-                //Check if the split is a number.
-                temp = [formatter numberFromString:[split objectAtIndex:i]];
-                if (temp) {
-                    //It is a number.
-                    //If it is the begining of the split then use the number as total, and update number.
-                    if (i == 0) {
-                        total = [temp floatValue];
-                        number = [NSNumber numberWithFloat:total];
-                    } else {
-                        //It is not the first value of the array, and the division number is different than zero.
-                        //(Division by 0 are considered not valid)
-                        if ([temp floatValue] != 0.0) {
-                            //Divide the total, and update number.
-                            total /= [temp floatValue];
-                            number = [NSNumber numberWithFloat:total];
+                    if (total.imaginary != 0) {
+                        if (part.imaginary != 0) {
+                            total.imaginary /= part.imaginary;
                         } else {
-                            //Terminate iteration and number is nil, to represent a nonvalid result.
-                            i = [split count];
-                            number = nil;
+                            total.imaginary /= part.real;
                         }
+                    } else {
+                        total.real      /= part.real;
                     }
-                } else {
-                    //Not a number so lets stop and say number is nil.
-                    i = [split count];
-                    number = nil;
+                    //total.imaginary /= part.imaginary;
                 }
-                break;
-            default:
-                //Anyother operator just stop.
-                i = [split count];
-                number = nil;
-                break;
+            }
+            return total;
         }
+    } else {
+        NSLog(@"Error in REGEX: %@",error.description);
+        return  nil;
     }
-    
-    //Return the number. It could be an NSNumber or nil.
-    return number;
 }
 
++(ComplexObject *)rootAndRegEx:(NSString *)string {
+    NSError *error = nil;
+    NSRegularExpression *regex = nil;
+    
+    regex = [NSRegularExpression regularExpressionWithPattern:@"√((\\d|[-.i])*)"
+                                                      options:NSRegularExpressionCaseInsensitive
+                                                        error:&error];
+    
+    NSRange textRange = NSMakeRange(0, string.length);
+    NSArray *matches = [regex matchesInString:string options:NSMatchingReportCompletion range:textRange];
+    
+    NSMutableArray *splitString = nil;
+    if (matches) {
+        int i = 0;
+        NSRange range ;
+        for (NSTextCheckingResult *result in matches) {
+            if (!splitString) {
+                splitString = [NSMutableArray array];
+            }
+            
+            range = result.range;
+            range.length -= 1;
+            range.location += 1;
+            if (range.length > 0) {
+                NSString *sub      = [string substringWithRange:range];
+                ComplexObject *com = [self complexAndRegEx:sub];
+                [splitString addObject:com];
+            }
+            
+            i++;
+        }
+        if (!i) {
+            ComplexObject *complex = [self complexAndRegEx:string];
+            
+            return complex;
+        } else {
+            ComplexObject *total  = nil;
+            for (ComplexObject *part in splitString) {
+                total = part;
+            }
+            /*
+            ComplexObject *complex = nil;
+            if (total.imaginary != 0) {
+                double real = total.imaginary * cos(0.785398163);
+                double imag = total.imaginary * sin(0.785398163);
+                complex = [[ComplexObject alloc] initWithReal:real
+                                                 andImaginary:imag];
+            } else {
+            if (total.real < 0) {
+                complex = [[ComplexObject alloc] initWithReal:0 andImaginary:sqrt(fabsf(total.real))];
+            } else {
+                complex = [[ComplexObject alloc] initWithReal:sqrt(total.real) andImaginary:0];
+            }
+            }*/
+            [total squareRoot];
+            return total;
+        }
+    } else {
+        NSLog(@"Error in REGEX: %@",error.description);
+        return  nil;
+    }
+}
+
++(ComplexObject *)complexAndRegEx:(NSString *)string {
+    NSError *error = nil;
+    NSRegularExpression *regex = nil;
+    
+    regex = [NSRegularExpression regularExpressionWithPattern:@"((\\d|[-.])*)i"
+                                                      options:NSRegularExpressionCaseInsensitive
+                                                        error:&error];
+    
+    NSRange textRange = NSMakeRange(0, string.length);
+    NSArray *matches = [regex matchesInString:string options:NSMatchingReportCompletion range:textRange];
+    
+    NSMutableArray *splitString = nil;
+    if (matches) {
+        int i = 0;
+        NSRange range ;
+        for (NSTextCheckingResult *result in matches) {
+            if (!splitString) {
+                splitString = [NSMutableArray array];
+            }
+            
+            range = result.range;
+            range.length -= 1;
+            if (range.length > 0) {
+                NSString *sub  = [string substringWithRange:range];
+                [splitString addObject:sub];
+            }
+            
+            i++;
+        }
+        if (!i) {
+            ComplexObject *complex = [[ComplexObject alloc] initWithReal:[string doubleValue] andImaginary:0];
+            
+            return complex;
+        } else {
+             ComplexObject *complex = [[ComplexObject alloc] initWithReal:0
+                                                             andImaginary:[[splitString objectAtIndex:0] doubleValue]];
+            return complex;
+        }
+    } else {
+        NSLog(@"Error in REGEX: %@",error.description);
+        return  nil;
+    }
+}
 
 //Solve the NSString.
 //With a string, solve its content if it is an operation if it is not a valid operation returns nil.
-+(NSNumber *)solveString:(NSString *)string {
-    NSNumber *result = nil;
++(ComplexObject *)solveString:(NSString *)string {
+    ComplexObject *result = nil;
     
     //Check if it is a valid expression based on parenthesis.
-    //If it was the same open as close parentheses it is considered valid.
+    //If it has the same number of open as of close parentheses, it is considered valid.
     if ([self openParenthesesFor:string toLocation:[string length]] == 0) {
         //Fix the string. String might need some help to process eg. )( should be )*(
         string = [self fixString:string];
-        
-        //Check if the string has parentheses
-        if ([self hasParentheses:string]) {
-            //Try to obtain a special array with the middle object is the string to process
-            //When done, concatenate all other objects and try to solve recursively.
-            NSMutableArray *parentheses = [NSMutableArray arrayWithArray:[self splitString:string byOperator:GIDAOperatorOpenParentheses]];
-            if (parentheses) {
-                NSNumber *par = [self solveString:[parentheses objectAtIndex:1]];
-                if (par) {
-                    [parentheses setObject:[par stringValue] atIndexedSubscript:1];
-                    string = [parentheses componentsJoinedByString:@""];
-                    result = [self solveString:string];
-                }
-            }
-        } else {
-            //Start solving based on +, then, * then /.
-            result = [self solveString:string andOperator:GIDAOperatorPlus];
-        }
+        result = [self parenthesisAndRegEx:string];
     }
     
     return result;
