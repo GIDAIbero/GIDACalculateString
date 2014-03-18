@@ -9,9 +9,9 @@
 #import "ViewController.h"
 
 @interface ViewController ()
-@property (retain, nonatomic) IBOutlet UIButton *solveButton;
-@property (retain, nonatomic) IBOutlet UITextField *textField;
-@property (retain, nonatomic) IBOutlet UILabel *solutionLabel;
+@property (strong, nonatomic) IBOutlet UIButton *solveButton;
+@property (strong, nonatomic) IBOutlet UITextField *textField;
+@property (strong, nonatomic) IBOutlet UILabel *solutionLabel;
 -(IBAction)solver:(id)sender;
 @end
 
@@ -42,17 +42,11 @@
     UIBarButtonItem *betweenSignAndArrowSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
     [betweenSignAndArrowSpace setWidth:25];
     
-    UIToolbar *kbtb = [[[UIToolbar alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 30)] autorelease];
+    UIToolbar *kbtb = [[UIToolbar alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 30)];
     [kbtb setBarStyle:UIBarStyleBlackTranslucent];
     [kbtb setItems:[NSArray arrayWithObjects: space, plus, space, minus, space, times, space, fraction, space, openPar, space, closePar, space, nil]];
     
-    [space release];
-    [plus release];
-    [openPar release];
-    [closePar release];
     
-    [betweenArrowsSpace release];
-    [betweenSignAndArrowSpace release];
     
     _textField.inputAccessoryView = kbtb;
     _textField.keyboardAppearance = UIKeyboardAppearanceAlert;
@@ -89,11 +83,5 @@
         [_solutionLabel setText:@"Incorrect operation"];
     }
     NSLog(@"Solution: %@", [solved stringValue]);
-}
-- (void)dealloc {
-    [_textField release];
-    [_solveButton release];
-    [_solutionLabel release];
-    [super dealloc];
 }
 @end
