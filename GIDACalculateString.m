@@ -140,7 +140,9 @@ typedef NSUInteger GIDAOperator;
 //call the same function but with the position at the end. Use this if it is always at the end.
 //If not use the same but with aroundThis:range.
 +(BOOL)usingThis:(NSString *)string addThis:(NSString *)newString {
-    return [self usingThis:string addThis:newString here:(NSMakeRange(0, [string length]))];
+    int len = 0;
+    int loc = [string length];
+    return [self usingThis:string addThis:newString here:(NSMakeRange(loc, len))];
 }
 
 //Check if the newString is a valid string or character to add to the string in the range position.
