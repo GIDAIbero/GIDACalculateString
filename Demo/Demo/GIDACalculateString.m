@@ -197,7 +197,7 @@ typedef NSUInteger GIDAOperator;
             //Depending on the character to add differend operations are handled.
             switch ([newString characterAtIndex:0]) {
                 case '.':
-                    //The user is not allowed to put only ONE '.' in a series of numbers in between operators.
+                    //The user is allowed to put only ONE '.' in a series of numbers in between operators.
                     notAllowed = [NSCharacterSet characterSetWithCharactersInString:@"."];
                     toStop = [NSCharacterSet characterSetWithCharactersInString:@"()/+-*"];
                     success = [self checkFor:'.' inThis:string fromThis:range.location-1 whereThisAre:notAllowed andThisHelps:toStop];
@@ -205,35 +205,35 @@ typedef NSUInteger GIDAOperator;
                 case '+':
                     //The user is not allowed to put a '+' sign when on the left there is a  '(', '+', '-', '*', or '/'.
                     //To the right of a '+' sign there can not be a ')', '+', '-', '*', or '/'.
-                    left = [NSCharacterSet characterSetWithCharactersInString:@"(+-*/"];
+                    left = [NSCharacterSet characterSetWithCharactersInString:@"(+-*/."];
                     right = [NSCharacterSet characterSetWithCharactersInString:@"+-*/)"];
                     success = [self checkThis:string atThis:range.location ifLeftDoesNotHave:left norRightHas:right allowFirst:NO];
                     break;
                 case '-':
                     //The user is not allowed to put a '+' sign when on the left there is a '-'.
                     //To the right of a '-' sign there can not be a ')', '+', '-', '*', or '/'.
-                    left = [NSCharacterSet characterSetWithCharactersInString:@"-"];
+                    left = [NSCharacterSet characterSetWithCharactersInString:@"-."];
                     right = [NSCharacterSet characterSetWithCharactersInString:@"+-*/)"];
                     success = [self checkThis:string atThis:range.location ifLeftDoesNotHave:left norRightHas:right allowFirst:YES];
                     break;
                 case '*':
                     //The user is not allowed to put a '*' sign when on the left there is a  '(', '+', '-', '*', or '/'.
                     //To the right of a '*' sign there can not be a ')', '+', '-', '*', or '/'.
-                    left = [NSCharacterSet characterSetWithCharactersInString:@"(+-*/"];
+                    left = [NSCharacterSet characterSetWithCharactersInString:@"(+-*/."];
                     right = [NSCharacterSet characterSetWithCharactersInString:@"+-*/)"];
                     success = [self checkThis:string atThis:range.location ifLeftDoesNotHave:left norRightHas:right allowFirst:NO];
                     break;
                 case '/':
                     //The user is not allowed to put a '/' sign when on the left there is a  '(', '+', '-', '*', or '/'.
                     //To the right of a '/' sign there can not be a ')', '+', '-', '*', or '/'.
-                    left = [NSCharacterSet characterSetWithCharactersInString:@"(+-*/"];
+                    left = [NSCharacterSet characterSetWithCharactersInString:@"(+-*/."];
                     right = [NSCharacterSet characterSetWithCharactersInString:@"+*/)"];
                     success = [self checkThis:string atThis:range.location ifLeftDoesNotHave:left norRightHas:right allowFirst:NO];
                     break;
                 case '(':
                     //To put a '(', there can not be a ')', '+', '-', '*', or '/' to the right.
                     //There is no limitation to the left. '(' can go after any character
-                    left = [NSCharacterSet characterSetWithCharactersInString:@""];
+                    left = [NSCharacterSet characterSetWithCharactersInString:@"."];
                     right = [NSCharacterSet characterSetWithCharactersInString:@"+*/)"];
                     success = [self checkThis:string atThis:range.location ifLeftDoesNotHave:left norRightHas:right allowFirst:NO];
                     break;
@@ -241,7 +241,7 @@ typedef NSUInteger GIDAOperator;
                     //To put a ')', there can not be a ')', '+', '-', '*', or '/' to the left.
                     //There is no limitation to the right. ')' can go before any character.
                     //Except if there is no open parentheses from the begining of the string to its position.
-                    left = [NSCharacterSet characterSetWithCharactersInString:@"(+-*/"];
+                    left = [NSCharacterSet characterSetWithCharactersInString:@"(+-*/."];
                     right = [NSCharacterSet characterSetWithCharactersInString:@""];
                     success = [self checkThis:string atThis:range.location ifLeftDoesNotHave:left norRightHas:right allowFirst:NO];
                     if (success) {
